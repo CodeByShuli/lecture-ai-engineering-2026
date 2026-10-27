@@ -11,6 +11,7 @@
 """
 
 import argparse
+import time
 
 from google import genai
 from google.genai import errors
@@ -21,25 +22,62 @@ from app.config import MODEL, api_error_message, get_api_key
 DEFAULT_QUESTION = "AIE2026の講座の宿題にある「3レベル」とは何ですか？"
 
 
+
 def ask(question: str) -> str:
     client = genai.Client(api_key=get_api_key())
-    response = client.models.generate_content(model=MODEL, contents=question)
 
-    # TODO(第1回 演習): response.usage_metadata から
-    #   入力トークン数と出力トークン数を表示してみよう（Copilotに頼んでよい）
+    # Start measuring response time
+    start_time = time.perf_counter()
 
+    response = client.models.generate_content(
+        model=MODEL,
+        contents=question
+    )
+
+    # Calculate response time
+    elapsed_time = time.perf_counter() - start_time
+
+    # Get token usage
     usage = response.usage_metadata
 
+    print(f"Response time: {elapsed_time:.2f} seconds")
     print(f"Input tokens: {usage.prompt_token_count}")
     print(f"Output tokens: {usage.candidates_token_count}")
 
     return response.text
 
 
+
+def chat_loop() -> None:
+    client = genai.Client(api_key=get_api_key())
+    chat = client.chats.create(model=MODEL)
+
+    print("Chat started! Type 'exit' to quit.")
+
+    while True:
+        question = input("You: ").strip()
+
+        if question.lower() == "exit":
+            print("Chat ended.")
+            break
+
+        if not question:
+            continue
+
+        response = chat.send_message(question)
+        print(f"Gemini: {response.text}\n")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="素のLLMに質問する")
     parser.add_argument("question", nargs="?", default=DEFAULT_QUESTION)
+    parser.add_argument("--chat", action="store_true")
+
     args = parser.parse_args()
+
+    if args.chat:
+        chat_loop()
+        return
 
     print(f"[model] {MODEL}")
     print(f"[質問] {args.question}\n")
