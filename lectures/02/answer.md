@@ -44,7 +44,7 @@ I think fine-tuning is useful when we need a model to consistently follow a part
 
 
 ### Intermediate
-#### 1. Level and Changes Made
+#### 1. Level and changes made
 
 For the Implementation level, I decided to create my own FAQ dataset based on a fictional video game development project. I chose this topic because I'm interested in game development, and I wanted to see how the model would handle questions about a project with a limited amount of information.
 
@@ -62,7 +62,7 @@ For the ungrounded questions, I deliberately chose information that wasn't menti
 
 The final dataset contained 14 training examples, 7 validation examples, and 21 test questions. The training and test questions used different phrasings to avoid evaluating the model on the exact same questions it had seen during training.
 
-#### 2. Training and Results
+#### 2. Training and results
 
 I used Qwen3.5-0.8B with LoRA and kept the original training configuration:
 
@@ -76,7 +76,7 @@ The training completed 40 steps in 170 seconds, and the final recorded training 
 
 Comparison before and after training:
 
-| Metric | Before Training | After Training |
+| Metric | Before training | After training |
 |---|---|---|
 | Format accuracy | 38.10% | 100% |
 | Content accuracy | 0% | 90.48% |
@@ -86,7 +86,7 @@ Comparison before and after training:
 
 The improvement was pretty noticeable. Before training, the model frequently returned incomplete JSON responses or forgot to include `needs_review`. After training, all 21 responses followed the required format. Content accuracy also improved significantly, although two questions still failed. The first was "Is the project made with Unity or Unreal Engine?" The model requested verification even though the FAQ clearly stated that Unity 6 was being used. The second was "How long does it take to finish the demo?" Instead of recognizing that the FAQ didn't mention the demo's playtime, the model answered with its scheduled completion date. I found this second mistake particularly interesting because the model produced a perfectly formatted JSON response but confused two different pieces of information.
 
-#### 3. Additional Knowledge Questions
+#### 3. Additional knowledge questions
 
 I also tested four additional questions that weren't part of the original evaluation set. Three asked about information missing from the FAQ: the game's age rating, cloud save support, and character portrait illustrator. The fourth asked about the known demo completion date. Before training, all four responses failed the format check. After training, the model correctly requested verification for the three unknown questions and answered the demo completion date correctly. All four classifications were correct. This was an improvement, but the errors from the previous evaluation showed that the model still couldn't reliably distinguish known and unknown information in every situation.
 
