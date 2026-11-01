@@ -13,10 +13,10 @@
 
 ## 宿題
 
-- 取り組んだレベル：基礎 / 実装 / 発展
-- 変えた設定やデータ：
-- 結果（比較表や数字）：
-- ファインチューニングが向く場面・向かない場面についての考察：
+- 取り組んだレベル：発展, I decided to complete all three levels to explore how different training settings, custom datasets, and glossary-based fine-tuning affect model performance.
+- 変えた設定やデータ：For Basic, I reduced the training epochs from 20 to 10. For Implementation, I created a custom FAQ dataset about a fictional Unity game. For Advanced, I generated 116 training examples from the course glossary, prepared a separate evaluation set, and compared the fine-tuned model with direct glossary retrieval.
+- 結果（比較表や数字）：In Basic, both configurations achieved 100% format accuracy, while content accuracy was slightly higher with 20 epochs (90.48% vs. 85.71%). In Implementation, format accuracy improved from 38.10% to 100%, and content accuracy reached 90.48%. In Advanced, mean text similarity increased from 0.094 to 0.451, while the glossary retrieval system correctly handled all 12 lookup tests.
+- ファインチューニングが向く場面・向かない場面についての考察：Across the three experiments, I found that fine-tuning was particularly effective for improving output consistency and adapting responses to specific datasets. However, it didn't completely prevent incorrect or unsupported answers. I think retrieval is more suitable when answers need to be grounded in a reliable source, while combining retrieval with fine-tuning could provide both consistency and factual support.
 
 ### Basic
 
@@ -97,3 +97,60 @@ Based on these results, I think fine-tuning is especially useful when we want a 
 However, I don't think fine-tuning alone is the best approach when factual accuracy is especially important or when information changes frequently. For example, when the model confused the demo's completion date with its playtime, it showed that it could still provide an unsupported answer even after training. For situations like that, I think a retrieval-based approach would be more appropriate. Instead of depending entirely on information learned during training, the model could look up the relevant information and check whether the source actually supports its answer.
 
 Overall,  teaching a model how to respond and teaching it when it has enough information to respond are two different challenges. Fine-tuning improved both format and content accuracy in my tests, but it didn't eliminate every error.
+
+### Advanced — Fine Tuning with the course glossary
+
+#### 1. Level and changes made
+
+For the Advanced level, I used the course glossary to create a new training dataset instead of working with the fictional FAQ from the previous exercises. I generated the dataset using `scripts/make_sft_dataset.py` in GitHub Codespaces. The script converted the 58 glossary terms into 116 question-answer examples in JSONL format, using the `messages` structure required by `SFTTrainer`, then I uploaded the dataset to Google Colab and modified the notebook to train Qwen3.5-0.8B directly on these examples. I separated the dataset by glossary term, keeping both question variations for each term in the same split. This gave me 92 training examples and 24 validation examples.
+
+I also created 12 evaluation questions divided into four categories:
+
+- 3 rephrased questions: Definitions of terms included in training, but asked using different wording.
+- 3 alias questions: Terms referred to by alternative names, such as ADK, token, and Coding Agent.
+- 2 held-out terms: Guardrails and Fine-Tuning, which were included in the glossary but excluded from the training set.
+- 4 outside-glossary terms: DBSCAN, Kalman Filter, Finite Element Method, and Monte Carlo Tree Search.
+
+For the eight questions about glossary terms, I used their original definitions as reference answers. For the other four, I marked them as absent from the glossary.
+
+#### 2. Training and results
+
+I trained the model using LoRA for 5 epochs, keeping the learning rate at `2e-4`, `lora_r = 16`, and `lora_alpha = 32`. I reduced the number of epochs compared with the previous exercises because this dataset was considerably larger. The training completed 60 steps in 143.3 seconds, the average training loss was approximately 1.4503, while the last logged loss was 0.4582. To compare the model before and after training, I used the same 12 evaluation questions and measured textual similarity against the original glossary definitions.
+
+| Metric | Before Training | After Training |
+|---|---|---|
+| Evaluation questions | 12 | 12 |
+| Mean text similarity | 0.094 | 0.451 |
+| Evaluation time | 56.4 s | 37.7 s |
+
+The similarity scores were calculated using the eight questions with reference definitions. The four outside-glossary questions were examined separately. Overall, the model's responses became much closer to the original definitions after training.
+
+Two particularly clear examples were Epoch and Learning Rate. Before training, the model gave longer explanations that didn't properly match the course definitions. After training, it reproduced both definitions exactly, giving them a similarity score of 1.000. However, the improvement wasn't consistent across all categories. The alias questions showed some improvement, but the answers still contained inaccuracies. For example, the model confused ADK with an Amazon-related cloud tool instead of correctly explaining Google's Agent Development Kit. The two held-out terms, Guardrails and Fine-Tuning, also had relatively low similarity scores after training. This was interesting because it suggested that the model had learned some of the specific definitions it encountered during training but didn't necessarily generalize equally well to concepts it hadn't trained on.
+
+For concepts outside the glossary, the model still generated answers rather than indicating that the information wasn't available in the course material. Some of those answers were incorrect or mixed unrelated concepts. This showed me that improved similarity to training definitions doesn't necessarily mean that a model has become consistently reliable.
+
+#### 3. Comparison with glossary retrieval
+
+I also created a simple retrieval-based system to compare with the fine-tuned model. Instead of training, this system searched the original `glossary.json` file for the requested term or one of its aliases. If the term existed, it returned the original definition. Otherwise, it returned "Not in the glossary." The retrieval system correctly handled all 12 evaluation questions.
+
+| Question Category | Correct Lookups |
+|---|---|
+| Rephrased questions | 3/3 |
+| Aliases | 3/3 |
+| Held-out terms | 2/2 |
+| Outside-glossary terms | 4/4 |
+| Total | 12/12 |
+
+I found this comparison especially useful because the retrieval system didn't need to learn or memorize any definitions. It simply accessed the original source. It also correctly identified the four terms that weren't included in the glossary, while the fine-tuned model still attempted to explain them.
+
+However, this wasn't a completely equivalent comparison. The retrieval system had access to the full glossary, including terms excluded from the model's training data. It also relied on exact matching of term names and aliases, which made the evaluation easier for this particular search method. The model's similarity scores and the retrieval system's lookup accuracy measure different things, so they shouldn't be directly compared as percentages of factual accuracy.
+
+#### 4. When Fine Tuning is useful and when it isn't
+
+After completing all three homework levels, I think I have a better understanding of the difference between adapting a model's behavior and giving it reliable access to information. Fine-tuning seems particularly useful when a model needs to consistently follow a specific format, writing style, or task-specific behavior. It can also help the model produce familiar definitions or responses without searching an external dataset every time. Still, fine-tuning requires training resources, and the information learned by the model may become outdated. More importantly, even when the training loss decreases and evaluation scores improve, the model can still produce incorrect information.
+
+In this experiment, the fine-tuned model performed very well on some familiar definitions but struggled with aliases, held-out concepts, and questions outside the glossary. Retrieval seems more appropriate when answers need to stay grounded in a specific source or when the information changes frequently. It can return the original definition directly, and updating the information doesn't require retraining the model.
+
+On the other hand, a simple keyword-based retrieval system depends on finding a matching term. It may struggle with questions that don't explicitly mention the correct terminology. A more advanced retrieval system would be needed to handle those cases. I think a combination of both approaches could be useful: fine-tuning to improve how the model responds, and retrieval to provide reliable, up-to-date information.
+
+Overall, this experiment showed me that memorizing definitions and being able to reliably answer questions about them are not the same thing. LoRA improved the model's responses, but accessing the glossary directly was more dependable for this particular evaluation.
