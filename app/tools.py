@@ -5,8 +5,11 @@ Rewriting descriptions changes whether the model uses a tool and which arguments
 """
 
 import json
+import random
 from functools import cache
 from pathlib import Path
+from datetime import datetime, timezone
+from uuid import uuid4
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 MAX_RESULTS = 3
@@ -77,3 +80,62 @@ def get_lecture_summary(lecture: int) -> str:
         available = sorted(p.stem for p in (DATA_DIR / "lectures").glob("*.md"))
         return f"Key points for Lecture {lecture:02d} are not available yet. Available sessions: {', '.join(available)}"
     return path.read_text(encoding="utf-8")
+
+
+
+def make_quiz(lecture: int) -> str:
+    """Create a review question and answer from the glossary.
+
+    Use when the learner asks for a review question or quiz
+    from a specific lecture, such as "Give me a review question
+    from Lecture 2".
+    """
+    glossary = load_glossary()
+
+    terms = [
+        entry for entry in glossary
+        if entry["lecture"] == lecture
+    ]
+
+    if not terms:
+        return f"No glossary terms found for Lecture {lecture:02d}."
+
+    selected = random.choice(terms)
+
+    return json.dumps(
+        {
+            "question": f"What does {selected['term']} mean?",
+            "answer": selected["definition"],
+        },
+        ensure_ascii=False,
+    )
+
+
+def save_learning_log(topic: str, notes: str) -> str:
+    """Save a learning record to the learning_log directory.
+
+    Use when the learner explicitly asks to save study notes
+    or record what they learned. Saving requires user approval.
+    """
+    if not topic.strip() or not notes.strip():
+        return "Both a topic and notes are required."
+
+    log_dir = Path(__file__).resolve().parent.parent / "learning_log"
+    log_dir.mkdir(parents=True, exist_ok=True)
+
+    timestamp = datetime.now(timezone.utc)
+    filename = f"{timestamp:%Y%m%dT%H%M%SZ}_{uuid4().hex[:8]}.json"
+    file_path = log_dir / filename
+
+    record = {
+        "topic": topic,
+        "notes": notes,
+        "created_at": timestamp.isoformat(),
+    }
+
+    file_path.write_text(
+        json.dumps(record, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+    return f"Learning log saved to learning_log/{filename}"

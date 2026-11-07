@@ -16,7 +16,7 @@ import inspect
 import json
 from pathlib import Path
 
-from pydantic_ai import Agent
+from pydantic_ai import Agent, DeferredToolRequests, DeferredToolResults
 from pydantic_ai.exceptions import ModelHTTPError
 from fastmcp import Client
 from pydantic_ai.mcp import MCPToolset, StdioTransport
@@ -38,10 +38,15 @@ You are a learning support agent for the AI Engineering Pilot Course (AIE2026).
 """
 
 # Pass the model at runtime (so tests can substitute TestModel without calling an API)
-agent = Agent(instructions=INSTRUCTIONS)
+agent = Agent(
+    instructions=INSTRUCTIONS,
+    output_type=[str, DeferredToolRequests],
+)
+
 agent.tool_plain(tools.search_glossary)
 agent.tool_plain(tools.get_lecture_summary)
-
+agent.tool_plain(tools.make_quiz)
+agent.tool_plain(tools.save_learning_log, requires_approval=True)
 # TODO(Lecture 03 exercise): create make_quiz in tools.py and register it here
 
 # Lecture 05: MCP server configuration file. Uses the same "mcpServers" format as Claude Desktop and Cursor
@@ -128,14 +133,46 @@ def main() -> None:
     print(f"[model] {MODEL}")
     if args.mcp:
         print("[tools] MCP servers (app/mcp_servers.json)")
+
     try:
-        result = target.run_sync(args.question, model=build_model())
+        model = build_model()
+        result = target.run_sync(args.question, model=model)
+
+        while isinstance(result.output, DeferredToolRequests):
+            requests = result.output
+            approvals = {}
+
+            for call in requests.approvals:
+                print(f"\nApproval required: {call.tool_name}")
+                print(f"Arguments: {call.args}")
+
+                choice = input("Approve this action? (y/N): ")
+                approved = choice.strip().lower() in ("y", "yes")
+
+                approvals[call.tool_call_id] = approved
+
+            if not approvals:
+                print("No approval requests to process.")
+                break
+
+            decisions = DeferredToolResults(approvals=approvals)
+
+            result = target.run_sync(
+                "Report the result of the requested operation.",
+                model=model,
+                message_history=result.all_messages(),
+                deferred_tool_results=decisions,
+            )
+
     except ModelHTTPError as e:
         print(api_error_message(e.status_code, str(e.body)[:200]))
         raise SystemExit(1)
+
     print(result.output)
+
     if args.trace:
         print_trace(result)
+
 
 
 if __name__ == "__main__":
