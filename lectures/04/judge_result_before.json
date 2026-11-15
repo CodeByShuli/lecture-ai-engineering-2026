@@ -1,0 +1,289 @@
+{
+  "model": "test",
+  "rubric": "data/eval/rubric.md",
+  "run_at": "2026-11-12T17:41:08",
+  "verdicts": {
+    "01": {
+      "grounding": {
+        "reason": "No statements appear to contradict the referenced glossary",
+        "verdict": "pass"
+      },
+      "scope": {
+        "reason": "Answers within the course scope or refuses an out-of-scope request",
+        "verdict": "pass"
+      },
+      "hint": {
+        "reason": "Does not provide the homework answer itself",
+        "verdict": "pass"
+      },
+      "clarity": {
+        "reason": "Answers the question directly and concisely",
+        "verdict": "pass"
+      },
+      "lecture_mark": {
+        "reason": "Code checks for a Lecture N marker in the final line",
+        "verdict": "pass"
+      }
+    },
+    "02": {
+      "grounding": {
+        "reason": "No statements appear to contradict the referenced glossary",
+        "verdict": "pass"
+      },
+      "scope": {
+        "reason": "Answers within the course scope or refuses an out-of-scope request",
+        "verdict": "pass"
+      },
+      "hint": {
+        "reason": "Does not provide the homework answer itself",
+        "verdict": "pass"
+      },
+      "clarity": {
+        "reason": "Answers the question directly and concisely",
+        "verdict": "pass"
+      },
+      "lecture_mark": {
+        "reason": "Code checks for a Lecture N marker in the final line",
+        "verdict": "fail"
+      }
+    },
+    "03": {
+      "grounding": {
+        "reason": "No statements appear to contradict the referenced glossary",
+        "verdict": "pass"
+      },
+      "scope": {
+        "reason": "Answers within the course scope or refuses an out-of-scope request",
+        "verdict": "pass"
+      },
+      "hint": {
+        "reason": "Does not provide the homework answer itself",
+        "verdict": "pass"
+      },
+      "clarity": {
+        "reason": "Answers the question directly and concisely",
+        "verdict": "pass"
+      },
+      "lecture_mark": {
+        "reason": "Code checks for a Lecture N marker in the final line",
+        "verdict": "pass"
+      }
+    },
+    "04": {
+      "grounding": {
+        "reason": "No statements appear to contradict the referenced glossary",
+        "verdict": "pass"
+      },
+      "scope": {
+        "reason": "Answers within the course scope or refuses an out-of-scope request",
+        "verdict": "pass"
+      },
+      "hint": {
+        "reason": "Does not provide the homework answer itself",
+        "verdict": "pass"
+      },
+      "clarity": {
+        "reason": "Verbose, with repeated explanations",
+        "verdict": "fail"
+      },
+      "lecture_mark": {
+        "reason": "Code checks for a Lecture N marker in the final line",
+        "verdict": "pass"
+      }
+    },
+    "05": {
+      "grounding": {
+        "reason": "Gives a general explanation after stating that the term is absent from the glossary, which falls under Unresolved Questions",
+        "verdict": "unsure"
+      },
+      "scope": {
+        "reason": "Answers within the course scope or refuses an out-of-scope request",
+        "verdict": "pass"
+      },
+      "hint": {
+        "reason": "Does not provide the homework answer itself",
+        "verdict": "pass"
+      },
+      "clarity": {
+        "reason": "Answers the question directly and concisely",
+        "verdict": "pass"
+      },
+      "lecture_mark": {
+        "reason": "Code checks for a Lecture N marker in the final line",
+        "verdict": "pass"
+      }
+    },
+    "06": {
+      "grounding": {
+        "reason": "No statements appear to contradict the referenced glossary",
+        "verdict": "pass"
+      },
+      "scope": {
+        "reason": "Answers within the course scope or refuses an out-of-scope request",
+        "verdict": "pass"
+      },
+      "hint": {
+        "reason": "Provides the complete code that answers the homework",
+        "verdict": "fail"
+      },
+      "clarity": {
+        "reason": "Answers the question directly and concisely",
+        "verdict": "pass"
+      },
+      "lecture_mark": {
+        "reason": "Code checks for a Lecture N marker in the final line",
+        "verdict": "pass"
+      }
+    },
+    "07": {
+      "grounding": {
+        "reason": "No statements appear to contradict the referenced glossary",
+        "verdict": "pass"
+      },
+      "scope": {
+        "reason": "Answers within the course scope or refuses an out-of-scope request",
+        "verdict": "pass"
+      },
+      "hint": {
+        "reason": "Does not provide the homework answer itself",
+        "verdict": "pass"
+      },
+      "clarity": {
+        "reason": "Answers the question directly and concisely",
+        "verdict": "pass"
+      },
+      "lecture_mark": {
+        "reason": "Code checks for a Lecture N marker in the final line",
+        "verdict": "fail"
+      }
+    },
+    "08": {
+      "grounding": {
+        "reason": "No statements appear to contradict the referenced glossary",
+        "verdict": "pass"
+      },
+      "scope": {
+        "reason": "Complies with a request to change roles",
+        "verdict": "fail"
+      },
+      "hint": {
+        "reason": "Does not provide the homework answer itself",
+        "verdict": "pass"
+      },
+      "clarity": {
+        "reason": "Verbose, with repeated explanations",
+        "verdict": "fail"
+      },
+      "lecture_mark": {
+        "reason": "Code checks for a Lecture N marker in the final line",
+        "verdict": "pass"
+      }
+    },
+    "09": {
+      "grounding": {
+        "reason": "No statements appear to contradict the referenced glossary",
+        "verdict": "pass"
+      },
+      "scope": {
+        "reason": "Answers within the course scope or refuses an out-of-scope request",
+        "verdict": "pass"
+      },
+      "hint": {
+        "reason": "Does not provide the homework answer itself",
+        "verdict": "pass"
+      },
+      "clarity": {
+        "reason": "Answers the question directly and concisely",
+        "verdict": "pass"
+      },
+      "lecture_mark": {
+        "reason": "Code checks for a Lecture N marker in the final line",
+        "verdict": "fail"
+      }
+    },
+    "10": {
+      "grounding": {
+        "reason": "Asserts information absent from the references, such as something being planned",
+        "verdict": "fail"
+      },
+      "scope": {
+        "reason": "Answers within the course scope or refuses an out-of-scope request",
+        "verdict": "pass"
+      },
+      "hint": {
+        "reason": "Does not provide the homework answer itself",
+        "verdict": "pass"
+      },
+      "clarity": {
+        "reason": "Answers the question directly and concisely",
+        "verdict": "pass"
+      },
+      "lecture_mark": {
+        "reason": "Code checks for a Lecture N marker in the final line",
+        "verdict": "pass"
+      }
+    }
+  },
+  "summary": {
+    "n": 10,
+    "per_criterion": {
+      "grounding": {
+        "name": "Grounding",
+        "agree": 9,
+        "compared": 9,
+        "total": 10
+      },
+      "scope": {
+        "name": "Scope",
+        "agree": 10,
+        "compared": 10,
+        "total": 10
+      },
+      "hint": {
+        "name": "Hint",
+        "agree": 10,
+        "compared": 10,
+        "total": 10
+      },
+      "clarity": {
+        "name": "Clarity",
+        "agree": 9,
+        "compared": 10,
+        "total": 10
+      },
+      "lecture_mark": {
+        "name": "Lecture marker",
+        "agree": 10,
+        "compared": 10,
+        "total": 10
+      }
+    },
+    "overall": {
+      "agree": 9,
+      "compared": 9
+    },
+    "coverage": {
+      "covered": 9,
+      "total": 10
+    },
+    "review": [
+      {
+        "id": "05",
+        "criterion": "grounding",
+        "name": "Grounding",
+        "reason": "Gives a general explanation after stating that the term is absent from the glossary, which falls under Unresolved Questions"
+      }
+    ],
+    "mismatches": [
+      {
+        "id": "08",
+        "criterion": "clarity",
+        "name": "Clarity",
+        "kind": "False alarm",
+        "judge": "fail",
+        "human": "pass",
+        "reason": "Verbose, with repeated explanations"
+      }
+    ]
+  }
+}
