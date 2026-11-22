@@ -1,12 +1,14 @@
-"""第3回: エージェントに持たせるツール。
+"""Lecture 03: tools for the agent.
 
-ここに書いた関数の docstring と型ヒントが、そのままモデルへの「ツールの説明文」になる。
-説明文を書き換えると、モデルがツールを使うかどうか・どんな引数で呼ぶかが変わる。
+Function docstrings and type hints here become the "tool descriptions" presented to the model.
+Rewriting descriptions changes whether the model uses a tool and which arguments it supplies.
 """
 
 import json
 from functools import cache
 from pathlib import Path
+
+from app.config import api_error_message
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 MAX_RESULTS = 3
@@ -29,18 +31,18 @@ def _names(entry: dict) -> list[str]:
 
 
 def search_glossary(query: str) -> str:
-    """講座の用語集から用語を検索し、定義と、どの回で扱うかを返す。
+    """Search the course glossary and return definitions and the sessions that cover the terms.
 
-    AIエンジニアリングの用語や、この講座（AIE2026）に固有の言葉について
-    答える前に使うこと。query には調べたい用語を1つだけ入れる（例: "LoRA"）。
+    Use before answering about AI engineering terms or words specific to this course (AIE2026).
+    Put only one term to look up in query (for example, "LoRA").
     """
     q = _normalize(query)
     if not q:
-        return "検索語が空です。調べたい用語を1つ指定してください。"
+        return "The search query is empty. Specify one term to look up."
     glossary = load_glossary()
 
     exact = [e for e in glossary if q in _names(e)]
-    # 「r」のような短い別名が何にでも当たらないよう、名前側が短いものは除く
+    # Exclude short names so aliases such as "r" do not match everything
     partial = [
         e for e in glossary
         if e not in exact and any(q in n or (len(n) >= 3 and n in q) for n in _names(e))
@@ -52,7 +54,7 @@ def search_glossary(query: str) -> str:
     hits = (exact + partial + in_definition)[:MAX_RESULTS]
 
     if not hits:
-        return f"用語集に「{query}」は見つかりませんでした。"
+        return f"The term '{query}' was not found in the glossary."
     return json.dumps(
         [
             {
@@ -68,12 +70,58 @@ def search_glossary(query: str) -> str:
 
 
 def get_lecture_summary(lecture: int) -> str:
-    """指定した回（1始まりの整数）の講義の要点を返す。
+    """Return key points from the specified session (an integer starting at 1).
 
-    「第3回では何を学ぶ？」のように、回の内容や関係を聞かれたときに使う。
+    Use when asked about session content or relationships, such as "What will we learn in Lecture 03?".
     """
     path = DATA_DIR / "lectures" / f"{lecture:02d}.md"
     if not path.exists():
         available = sorted(p.stem for p in (DATA_DIR / "lectures").glob("*.md"))
-        return f"第{lecture}回の要点はまだありません。用意されている回: {', '.join(available)}"
+        return f"Key points for Lecture {lecture:02d} are not available yet. Available sessions: {', '.join(available)}"
     return path.read_text(encoding="utf-8")
+
+def search_materials(query: str) -> str:
+    """Search the main materials for Lectures 01–03 and return relevant page text, titles, and page numbers.
+
+    Use query to specify what you want to look up.
+    """
+    from google.genai.errors import APIError
+    import sqlite3
+    from app.retrieval import search
+
+    try:
+        return json.dumps({"results": search(query)}, ensure_ascii=False)
+    except (ValueError, FileNotFoundError, sqlite3.Error) as e:
+        return json.dumps({"error": str(e), "results": []}, ensure_ascii=False)
+    except APIError as e:
+        return json.dumps({"error": api_error_message(e.code), "results": []}, ensure_ascii=False)
+
+
+def browse_tree(node_id: str | None = None) -> str:
+    """Return the table of contents and the first sentence of each page. Specify a page ID to get its full text.
+
+    Omit node_id on the first call. Then follow the table of contents using the returned IDs.
+    """
+    from app.retrieval import browse_tree as browse
+
+    try:
+        return json.dumps(browse(node_id), ensure_ascii=False)
+    except (ValueError, OSError) as e:
+        return json.dumps({"error": str(e)}, ensure_ascii=False)
+
+
+def search_graph(query: str) -> str:
+    """Search the materials, then follow adjacent pages and shared terms to return related page text and citation metadata.
+
+    Use query to specify what you want to look up.
+    """
+    import sqlite3
+    from google.genai.errors import APIError
+    from app.retrieval import search_graph as search
+
+    try:
+        return json.dumps(search(query), ensure_ascii=False)
+    except (ValueError, OSError, sqlite3.Error) as e:
+        return json.dumps({"error": str(e)}, ensure_ascii=False)
+    except APIError as e:
+        return json.dumps({"error": api_error_message(e.code)}, ensure_ascii=False)
